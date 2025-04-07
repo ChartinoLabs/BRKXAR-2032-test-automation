@@ -1,0 +1,55 @@
+# Python cache files
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+.coverage
+**/htmlcov
+
+# Development environment
+**/.venv/
+**/venv
+.python-version
+
+# Git and version control
+**/.git
+**/.gitignore
+**/.github
+**/.pre-commit-config.yaml
+
+# Docker files
+**/.dockerignore
+**/docker-compose*
+**/Dockerfile*
+
+# IDE settings
+**/.vs
+**/.vscode
+**/.classpath
+**/.project
+**/.settings
+**/.toolstarget
+**/*.*proj.user
+**/.env
+
+# Other development files
+development/
+**/tests
+**/tools
+**/config
+README.md
+CONTRIBUTING.md
+tasks.py
+alembic.ini
+
+# Misc
+**/*.dbmdl
+**/*.jfm
+**/azds.yaml
+**/bin
+**/charts
+**/node_modules
+**/npm-debug.log
+**/obj
+**/secrets.dev.yaml
+**/values.dev.yaml
