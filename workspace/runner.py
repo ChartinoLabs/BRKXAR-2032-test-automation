@@ -6,6 +6,7 @@ from pathlib import Path
 import yaml
 from pyats.easypy import run
 from utils.cli import define_parser
+from utils.constants import PARAMETERS_DIR
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -44,6 +45,19 @@ def main(runtime):
         task_id = f"{test_case_identifier} - {test_case_data['title']}"
         # Construct full jobfile path relative to the base jobfile directory
         jobfile_path = base_jobfile_directory / test_case_data["jobfile"]
+        # Construct parameters filename if one is not defined
+        explicit_parameters_file = test_case_data.get("parameters_file")
+        if explicit_parameters_file:
+            parameters_file = explicit_parameters_file
+        else:
+            sanitized_test_case_identifier = test_case_identifier.replace(".", "_")
+            parameters_file = (
+                f"{sanitized_test_case_identifier}_"
+                f"{test_case_data['jobfile']}_"
+                "parameters.json"
+            )
+
+        fully_qualified_parameters_file = str(PARAMETERS_DIR / parameters_file)
 
         logger.info(
             "Executing test case '%s' tied to jobfile at '%s'", task_id, jobfile_path
@@ -54,6 +68,7 @@ def main(runtime):
             runtime=runtime,
             mode=args.mode,
             task_id=task_id,
+            parameters_file=fully_qualified_parameters_file,
         )
 
 

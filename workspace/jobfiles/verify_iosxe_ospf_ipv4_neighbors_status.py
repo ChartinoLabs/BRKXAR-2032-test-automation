@@ -10,7 +10,6 @@ Can run in two modes:
 """
 
 import logging
-from pathlib import Path
 
 from pyats import aetest
 from utils.connectivity import (
@@ -18,7 +17,6 @@ from utils.connectivity import (
     disconnect_from_testbed_devices,
     verify_testbed_device_connectivity,
 )
-from utils.constants import PARAMETERS_DIR
 from utils.parameters import (
     load_parameters_from_file,
     save_parameters_to_file,
@@ -26,9 +24,6 @@ from utils.parameters import (
 )
 
 logger = logging.getLogger(__name__)
-
-# Define the parameters directory and file path
-PARAMETERS_FILE = Path(PARAMETERS_DIR) / f"{__name__.split('.')[-1]}_parameters.json"
 
 
 class CommonSetup(aetest.CommonSetup):
@@ -204,7 +199,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                         )
 
     @aetest.test
-    def verify_ospf_neighbors_status(self, testbed):
+    def verify_ospf_neighbors_status(self, testbed, parameters_file):
         """
         Learning mode: Learn OSPF neighbors and save to parameters file
         Testing mode: Verify OSPF neighbors against parameters file
@@ -213,7 +208,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
 
         # LEARNING MODE: Save the collected data to parameters file
         if self.mode == "learning":
-            if save_parameters_to_file(current_state, PARAMETERS_FILE):
+            if save_parameters_to_file(current_state, parameters_file):
                 self.passed(
                     "Successfully learned OSPF neighbors and saved to parameters file"
                 )
@@ -223,7 +218,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
         # TESTING MODE: Verify against parameters file
         else:  # testing mode
             # Load expected parameters
-            expected_parameters = load_parameters_from_file(PARAMETERS_FILE)
+            expected_parameters = load_parameters_from_file(parameters_file)
 
             if not expected_parameters:
                 self.failed("No expected parameters found. Run in learning mode first.")
