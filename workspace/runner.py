@@ -43,8 +43,6 @@ def main(runtime):
         mode=args.mode,
     )
 
-    print("owo what's this?")
-
 
 if __name__ == "__main__":
     main()
