@@ -1,0 +1,46 @@
+testbed:
+  credentials:
+    default:
+      username: admin
+      password: cisco!123
+devices:
+  R1:
+    os: iosxe
+    type: router
+    connections:
+      defaults:
+        class: unicon.Unicon
+      ssh:
+        ip: 10.81.235.60
+        port: 60001
+        protocol: ssh
+  R2:
+    os: iosxe
+    type: router
+    connections:
+      defaults:
+        class: unicon.Unicon
+      ssh:
+        ip: 10.81.235.60
+        port: 60002
+        protocol: ssh
+  R3:
+    os: iosxe
+    type: router
+    connections:
+      defaults:
+        class: unicon.Unicon
+      ssh:
+        ip: 10.81.235.60
+        port: 60003
+        protocol: ssh
+  R4:
+    os: iosxe
+    type: router
+    connections:
+      defaults:
+        class: unicon.Unicon
+      ssh:
+        ip: 10.81.235.60
+        port: 60004
+        protocol: ssh
