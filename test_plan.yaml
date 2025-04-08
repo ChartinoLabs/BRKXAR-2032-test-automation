@@ -1,0 +1,6 @@
+---
+jobfile_directory: "workspace/jobfiles/"
+test_cases:
+  "1.0.0":
+    title: Verify IOS-XE OSPF IPv4 Neighbor Status
+    jobfile: "verify_iosxe_ospf_ipv4_neighbors_status.py"
