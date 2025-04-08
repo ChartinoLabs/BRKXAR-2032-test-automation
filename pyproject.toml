@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "pyats[full]>=25.3",
+    "pyyaml>=6.0.2",
 ]
 
 [dependency-groups]
