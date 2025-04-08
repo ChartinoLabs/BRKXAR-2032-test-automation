@@ -1,0 +1,111 @@
+"""Contains helper functions working with device connectivity.
+
+These are often used as part of pyATS test script setup and teardown sections.
+"""
+
+import logging
+import threading
+import time
+from typing import Callable
+
+logger = logging.getLogger(__name__)
+
+
+def connect_to_device(device) -> None:
+    """Connect to a device in a testbed."""
+    logger.info("Connecting to device %s", device.name)
+    start_time = time.time()
+    device.connect(log_stdout=False)
+    total_time = time.time() - start_time
+    logger.info(
+        "Successfully connected to device %s in %.2f seconds", device.name, total_time
+    )
+
+
+def connect_to_testbed_devices(testbed) -> None:
+    """Connect to devices within a testbed."""
+    logger.info("Connecting to devices in testbed")
+    # Create threads for each device
+    threads = []
+    for device in testbed:
+        thread = threading.Thread(
+            target=connect_to_device,
+            args=(device,),
+            name=f"Connect-{device.name}",
+        )
+        threads.append(thread)
+    # Start all threads
+    start_time = time.time()
+    for thread in threads:
+        thread.start()
+
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+
+    total_time = time.time() - start_time
+    logger.info(
+        "Successfully connected to all devices in testbed in %.2f seconds", total_time
+    )
+
+
+def verify_testbed_device_connectivity(
+    testbed, failed_callable: Callable[[str], None]
+) -> None:
+    """Validate that all devices in the testbed are marked as connected."""
+    logger.info("Verifying connection to all devices")
+    for device in testbed:
+        logger.info("Verifying connection to device %s", device.name)
+        if not device.connected:
+            failed_callable(f"Failed to connect to device {device.name}")
+        else:
+            logger.info("Device %s is connected", device.name)
+
+
+def disconnect_single_device(device) -> None:
+    """Helper function to disconnect from a single device."""
+    logger.info(
+        "Checking to see if we're currently connected to device %s", device.name
+    )
+    if device.connected:
+        logger.info(
+            "Currently connected to device %s, disconnecting now...",
+            device.name,
+        )
+        start_time = time.time()
+        device.disconnect()
+        total_time = time.time() - start_time
+        logger.info(
+            "Successfully disconnected from device %s in %.2f seconds",
+            device.name,
+            total_time,
+        )
+    else:
+        logger.info("Not currently connected to device %s", device.name)
+
+
+def disconnect_from_testbed_devices(testbed) -> None:
+    """Disconnect from devices within a testbed using multithreading."""
+    logger.info("Disconnecting from all devices")
+
+    # Create threads for each device
+    threads = []
+    for device in testbed:
+        thread = threading.Thread(
+            target=disconnect_single_device,
+            args=(device,),
+            name=f"Disconnect-{device.name}",
+        )
+        threads.append(thread)
+
+    # Start all threads
+    start_time = time.time()
+    for thread in threads:
+        thread.start()
+
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+
+    total_time = time.time() - start_time
+    logger.info("All device disconnections completed in %.2f seconds", total_time)
