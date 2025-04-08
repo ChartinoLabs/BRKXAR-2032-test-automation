@@ -1,34 +1,15 @@
 """Primary entrypoint for pyATS job execution."""
 
-import argparse
 import logging
 from pathlib import Path
 
 import yaml
 from pyats.easypy import run
-from utils.types import RunningMode
+from utils.cli import define_parser
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
-parser = argparse.ArgumentParser(description="OSPF Neighbor Validation")
-parser.add_argument(
-    "--mode",
-    type=RunningMode,
-    choices=list(RunningMode),
-    default=RunningMode.TESTING,
-    help=(
-        "Mode to run: learning (update test case parameters) or testing "
-        "(validate against test case parameters)"
-    ),
-)
-parser.add_argument(
-    "--test-plan",
-    type=str,
-    default="test_plan.yaml",
-    help="Path to the test plan YAML file",
 )
 
 
@@ -40,7 +21,7 @@ def main(runtime):
         runtime: runtime object provided by pyATS
     """
     # Parse command-line arguments
-    args, unknown = parser.parse_known_args()
+    args, unknown = define_parser().parse_known_args()
 
     logger.info(f"Running in {str(args.mode)} mode")
 
