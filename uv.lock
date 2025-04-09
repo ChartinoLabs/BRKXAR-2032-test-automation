@@ -200,6 +200,7 @@ name = "brkxar-2032-test-automation"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "jinja2" },
     { name = "pyats", extra = ["full"] },
     { name = "pyyaml" },
 ]
@@ -212,6 +213,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "pyats", extras = ["full"], specifier = ">=25.3" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
