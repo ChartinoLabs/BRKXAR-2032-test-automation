@@ -7,3 +7,6 @@ test_cases:
   "1.0.1":
     title: Verify IOS-XE OSPF IPv4 Neighbor IP Addresses
     jobfile: "verify_iosxe_ospf_ipv4_neighbors_ip_addresses.py"
+  "1.0.2":
+    title: Verify IOS-XE OSPF IPv4 Neighbor Priority Value
+    jobfile: "verify_iosxe_ospf_ipv4_neighbors_priority.py"
