@@ -5,8 +5,8 @@ import argparse
 from utils.types import RunningMode
 
 
-def define_parser() -> argparse.Namespace:
-    """Creates the argparse Namespace for the command line interface."""
+def define_parser() -> argparse.ArgumentParser:
+    """Creates the argparse parser for the command line interface."""
 
     parser = argparse.ArgumentParser(description="OSPF Neighbor Validation")
     parser.add_argument(
