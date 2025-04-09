@@ -92,7 +92,7 @@ def run_command_on_devices(
     """Runs a command on one or more devices and parses the output."""
     target_devices: Iterable = []
     if testbed is not None:
-        target_devices = testbed.devices
+        target_devices = testbed.devices.values()
     elif device is not None:
         target_devices = [device]
     elif devices is not None:
