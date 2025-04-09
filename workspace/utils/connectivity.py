@@ -4,6 +4,7 @@ These are often used as part of pyATS test script setup and teardown sections.
 """
 
 import concurrent.futures
+import json
 import logging
 import time
 from dataclasses import dataclass
@@ -77,7 +78,16 @@ def run_command_on_device(
 ) -> CommandExecutionResult:
     """Runs a command on a device and parses the output."""
     output = device.execute(command)
+    logger.info(
+        "Output of command '%s' from device %s:\n\n%s\n", command, device.name, output
+    )
     data = device.parse(command, output=output)
+    logger.info(
+        "Parsed data resulting from output of command '%s' from device %s:\n\n%s\n",
+        command,
+        device.name,
+        json.dumps(data, indent=4),
+    )
     return CommandExecutionResult(
         device=device,
         command=command,
