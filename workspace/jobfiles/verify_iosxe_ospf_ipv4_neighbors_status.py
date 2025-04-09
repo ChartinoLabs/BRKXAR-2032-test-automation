@@ -12,9 +12,11 @@ Can run in two modes:
 import logging
 
 from pyats import aetest
+from pyats.topology.testbed import Testbed
 from utils.connectivity import (
     connect_to_testbed_devices,
     disconnect_from_testbed_devices,
+    run_command_on_devices,
     verify_testbed_device_connectivity,
 )
 from utils.parameters import (
@@ -22,6 +24,7 @@ from utils.parameters import (
     save_parameters_to_file,
     validate_parameters_directory_exists,
 )
+from utils.types import RunningMode
 
 logger = logging.getLogger(__name__)
 
@@ -51,41 +54,40 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
     """
 
     @aetest.setup
-    def setup(self, mode):
+    def setup(self, mode: RunningMode):
         """
         Set test mode: learning or testing
         """
         self.mode = mode
         logger.info(f"Running in {self.mode} mode")
 
-    def gather_current_state(self, testbed) -> dict:
+    def gather_current_state(self, testbed: Testbed) -> dict:
         """Gather the current state of each device."""
         all_devices_data = {}
 
         # Collect OSPF data from all devices
-        for device in testbed:
-            if not device.connected:
-                self.skipped(f"Device {device.name} is not connected")
-                continue
+        parsed_data = run_command_on_devices(
+            command="show ip ospf neighbor",
+            testbed=testbed,
+        )
 
-            # Parse the output of 'show ip ospf neighbor'
-            try:
-                output = device.parse("show ip ospf neighbor")
-            except Exception as e:
-                self.failed(
-                    f"Failed to parse 'show ip ospf neighbor' on {device.name}: {e}"
-                )
-                continue
+        # Collect OSPF data from all devices
+        for device in testbed:
+            execution_result = parsed_data.get(device.name)
+            if execution_result is None:
+                self.failed(f"No OSPF data found for device {device.name}")
+
+            data = execution_result.data
 
             # Check if there are any OSPF interfaces and neighbors
-            if "interfaces" not in output or not output["interfaces"]:
+            if "interfaces" not in data or not data["interfaces"]:
                 logger.warning(f"No OSPF interfaces found on {device.name}")
                 all_devices_data[device.name] = {}
                 continue
 
             # Process OSPF neighbors
             device_ospf_data = {}
-            for interface_name, interface_data in output["interfaces"].items():
+            for interface_name, interface_data in data["interfaces"].items():
                 if "neighbors" not in interface_data or not interface_data["neighbors"]:
                     continue
 
@@ -199,7 +201,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                         )
 
     @aetest.test
-    def verify_ospf_neighbors_status(self, testbed, parameters_file):
+    def verify_ospf_neighbors_status(self, testbed: Testbed, parameters_file):
         """
         Learning mode: Learn OSPF neighbors and save to parameters file
         Testing mode: Verify OSPF neighbors against parameters file
@@ -237,6 +239,6 @@ class CommonCleanup(aetest.CommonCleanup):
     """Cleanup for script."""
 
     @aetest.subsection
-    def disconnect_from_devices(self, testbed):
+    def disconnect_from_devices(self, testbed: Testbed):
         """Disconnect from all devices in the testbed."""
         disconnect_from_testbed_devices(testbed)
