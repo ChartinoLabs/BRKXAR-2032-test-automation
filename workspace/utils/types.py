@@ -1,6 +1,7 @@
 """Contains type definitions for pyATS test scripts."""
 
 from enum import Enum
+from typing import Any
 
 
 class RunningMode(str, Enum):
@@ -10,4 +11,4 @@ class RunningMode(str, Enum):
     TESTING = "testing"
 
 
-ParameterData = dict | list[dict]
+ParameterData = dict[str, Any]
