@@ -12,7 +12,7 @@ Can run in two modes:
 import logging
 
 from pyats import aetest
-from pyats.topology.testbed import Testbed
+from utils.adapters import TestbedAdapter
 from utils.connectivity import (
     connect_to_testbed_devices,
     disconnect_from_testbed_devices,
@@ -134,14 +134,14 @@ class CommonSetup(aetest.CommonSetup):
     """Setup for script."""
 
     @aetest.subsection
-    def connect_to_devices(self, testbed):
+    def connect_to_devices(self, testbed_adapter: TestbedAdapter):
         """Connect to all devices in the testbed."""
-        connect_to_testbed_devices(testbed)
+        connect_to_testbed_devices(testbed_adapter)
 
     @aetest.subsection
-    def verify_connected(self, testbed):
+    def verify_connected(self, testbed_adapter: TestbedAdapter):
         """Verify that all devices are connected."""
-        verify_testbed_device_connectivity(testbed, self.failed)
+        verify_testbed_device_connectivity(testbed_adapter, self.failed)
 
     @aetest.subsection
     def ensure_parameters_directory_exists(self):
@@ -162,21 +162,22 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
         self.mode = mode
         logger.info(f"Running in {self.mode} mode")
 
-    def gather_current_state(self, testbed: Testbed) -> dict:
+    def gather_current_state(self, testbed_adapter: TestbedAdapter) -> dict:
         """Gather the current state of each device."""
         all_devices_data = {}
 
         # Collect OSPF data from all devices
         parsed_data = run_command_on_devices(
             command="show ip ospf neighbor",
-            testbed=testbed,
+            testbed=testbed_adapter,
         )
 
         # Collect OSPF data from all devices
-        for device in testbed:
+        for device in testbed_adapter.devices.values():
             execution_result = parsed_data.get(device.name)
             if execution_result is None:
                 self.failed(f"No OSPF data found for device {device.name}")
+                continue
 
             data = execution_result.data
 
@@ -302,12 +303,14 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                         )
 
     @aetest.test
-    def verify_ospf_neighbors_status(self, testbed: Testbed, parameters_file):
+    def verify_ospf_neighbors_status(
+        self, testbed_adapter: TestbedAdapter, parameters_file
+    ):
         """
         Learning mode: Learn OSPF neighbors and save to parameters file
         Testing mode: Verify OSPF neighbors against parameters file
         """
-        current_state = self.gather_current_state(testbed)
+        current_state = self.gather_current_state(testbed_adapter)
 
         # LEARNING MODE: Save the collected data to parameters file
         if self.mode == "learning":
@@ -340,6 +343,6 @@ class CommonCleanup(aetest.CommonCleanup):
     """Cleanup for script."""
 
     @aetest.subsection
-    def disconnect_from_devices(self, testbed: Testbed):
+    def disconnect_from_devices(self, testbed_adapter: TestbedAdapter):
         """Disconnect from all devices in the testbed."""
-        disconnect_from_testbed_devices(testbed)
+        disconnect_from_testbed_devices(testbed_adapter)

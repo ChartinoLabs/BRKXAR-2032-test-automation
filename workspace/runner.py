@@ -7,6 +7,7 @@ import yaml
 from pyats.easypy import run
 from utils.cli import define_parser
 from utils.constants import PARAMETERS_DIR
+from utils.types import TestbedAdapter
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -37,6 +38,8 @@ def main(runtime):
     # Load test plan from YAML file
     with open(test_plan_path, "r") as f:
         test_plan = yaml.safe_load(f)
+
+    testbed_adapter = TestbedAdapter(runtime.testbed)
 
     base_jobfile_directory = Path(test_plan["jobfile_directory"]).resolve()
 
@@ -69,6 +72,7 @@ def main(runtime):
             mode=args.mode,
             task_id=task_id,
             parameters_file=fully_qualified_parameters_file,
+            testbed_adapter=testbed_adapter,
         )
 
 
