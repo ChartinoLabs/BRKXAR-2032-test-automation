@@ -5,9 +5,9 @@ from pathlib import Path
 
 import yaml
 from pyats.easypy import run
+from utils.adapters import TestbedAdapter
 from utils.cli import define_parser
 from utils.constants import PARAMETERS_DIR
-from utils.types import TestbedAdapter
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
