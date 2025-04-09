@@ -28,7 +28,7 @@ repos:
       - id: name-tests-test
         args: [--pytest-test-first]
       - id: pretty-format-json
-        args: ['--indent 4']
+        args: [--no-sort-keys, --indent=4]
       - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit
