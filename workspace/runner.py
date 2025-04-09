@@ -54,9 +54,10 @@ def main(runtime):
             parameters_file = explicit_parameters_file
         else:
             sanitized_test_case_identifier = test_case_identifier.replace(".", "_")
+            sanitized_jobfile_name = test_case_data["jobfile"].replace(".py", "")
             parameters_file = (
                 f"{sanitized_test_case_identifier}_"
-                f"{test_case_data['jobfile']}_"
+                f"{sanitized_jobfile_name}_"
                 "parameters.json"
             )
 
