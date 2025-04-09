@@ -6,6 +6,7 @@ These are often used as part of pyATS test script setup and teardown sections.
 import concurrent.futures
 import logging
 import time
+from dataclasses import dataclass
 from typing import Callable
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,78 @@ def verify_testbed_device_connectivity(
             failed_callable(f"Failed to connect to device {device.name}")
         else:
             logger.info("Device %s is connected", device.name)
+
+
+@dataclass
+class CommandExecutionResult:
+    """Represents the result of executing a command on a device."""
+
+    device: object
+    command: str
+    output: str
+    data: dict
+
+
+def run_command_on_device(command: str, device) -> CommandExecutionResult:
+    """Runs a command on a device and parses the output."""
+    output = device.execute(command)
+    data = device.parse(command, output=output)
+    return CommandExecutionResult(
+        device=device,
+        command=command,
+        output=output,
+        data=data,
+    )
+
+
+def run_command_on_devices(
+    command: str, testbed=None, device=None, devices: list = None
+) -> dict:
+    """Runs a command on one or more devices and parses the output."""
+    target_devices = []
+    if testbed is not None:
+        target_devices = list(testbed.devices)
+    elif device is not None:
+        target_devices = [device]
+    elif devices is not None:
+        target_devices = devices
+    else:
+        raise ValueError(
+            f"No target devices specified to execute command '{command}' against"
+        )
+
+    logger.info("Running command '%s' on devices: %d", command, len(target_devices))
+
+    results = {}
+    start_time = time.time()
+
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=len(target_devices)
+    ) as executor:
+        # Create a dictionary mapping futures to device names for result tracking
+        future_to_device = {
+            executor.submit(run_command_on_device, command, device): device
+            for device in target_devices
+        }
+
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_device):
+            device = future_to_device[future]
+            try:
+                result = future.result()
+                results[device.name] = result
+            except Exception as exc:
+                logger.error(f"Device {device.name} generated an exception: {exc}")
+                results[device.name] = None
+
+    total_time = time.time() - start_time
+    logger.info(
+        "Successfully executed command '%s' on all devices in %.2f seconds",
+        command,
+        total_time,
+    )
+
+    return results
 
 
 def disconnect_single_device(device) -> None:
