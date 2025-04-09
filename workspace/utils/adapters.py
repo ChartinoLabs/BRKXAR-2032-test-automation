@@ -8,7 +8,7 @@ support code completion and type checking.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Iterator, List, Optional, Union, cast
+from typing import Any, Iterator, cast
 
 from pyats.topology.device import Device as PyatsDevice
 from pyats.topology.testbed import Testbed as PyatsTestbed
@@ -80,7 +80,7 @@ class DeviceAdapter:
         """
         return cast(str, self.device.execute(command))
 
-    def parse(self, command: str, output: Optional[str] = None) -> Dict[str, Any]:
+    def parse(self, command: str, output: str | None = None) -> dict[str, Any]:
         """Parse the output of a command using the appropriate parser.
 
         Args:
@@ -91,10 +91,10 @@ class DeviceAdapter:
             A dictionary containing the parsed output
         """
         if output is None:
-            return cast(Dict[str, Any], self.device.parse(command))
-        return cast(Dict[str, Any], self.device.parse(command, output=output))
+            return cast(dict[str, Any], self.device.parse(command))
+        return cast(dict[str, Any], self.device.parse(command, output=output))
 
-    def configure(self, commands: Union[str, List[str]]) -> str:
+    def configure(self, commands: str | list[str]) -> str:
         """Configure the device with one or more commands.
 
         Args:
@@ -132,7 +132,7 @@ class TestbedAdapter:
             testbed: The pyATS Testbed object to adapt
         """
         self.testbed = testbed
-        self._device_adapters: Dict[str, DeviceAdapter] = {}
+        self._device_adapters: dict[str, DeviceAdapter] = {}
 
     @property
     def name(self) -> str:
@@ -140,7 +140,7 @@ class TestbedAdapter:
         return cast(str, self.testbed.name)
 
     @property
-    def devices(self) -> Dict[str, DeviceAdapter]:
+    def devices(self) -> dict[str, DeviceAdapter]:
         """Get a dictionary of device adapters."""
         # Lazily create device adapters as needed
         for device_name, device in self.testbed.devices.items():
@@ -209,27 +209,3 @@ class TestbedAdapter:
         return (
             f"TestbedAdapter(name='{self.name}', devices={list(self.devices.keys())})"
         )
-
-
-def adapt_testbed(testbed: PyatsTestbed) -> TestbedAdapter:
-    """Create a TestbedAdapter from a pyATS Testbed object.
-
-    Args:
-        testbed: The pyATS Testbed object to adapt
-
-    Returns:
-        A TestbedAdapter for the testbed
-    """
-    return TestbedAdapter(testbed)
-
-
-def adapt_device(device: PyatsDevice) -> DeviceAdapter:
-    """Create a DeviceAdapter from a pyATS Device object.
-
-    Args:
-        device: The pyATS Device object to adapt
-
-    Returns:
-        A DeviceAdapter for the device
-    """
-    return DeviceAdapter(device)
