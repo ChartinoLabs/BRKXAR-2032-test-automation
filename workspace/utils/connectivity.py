@@ -82,7 +82,7 @@ def run_command_on_device(command: str, device) -> CommandExecutionResult:
 
 def run_command_on_devices(
     command: str, testbed=None, device=None, devices: list = None
-) -> dict:
+) -> dict[str, CommandExecutionResult]:
     """Runs a command on one or more devices and parses the output."""
     target_devices = []
     if testbed is not None:
