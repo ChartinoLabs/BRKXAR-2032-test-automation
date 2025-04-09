@@ -3,8 +3,8 @@
 These are often used as part of pyATS test script setup and teardown sections.
 """
 
+import concurrent.futures
 import logging
-import threading
 import time
 from typing import Callable
 
@@ -25,23 +25,18 @@ def connect_to_device(device) -> None:
 def connect_to_testbed_devices(testbed) -> None:
     """Connect to devices within a testbed."""
     logger.info("Connecting to devices in testbed")
-    # Create threads for each device
-    threads = []
-    for device in testbed:
-        thread = threading.Thread(
-            target=connect_to_device,
-            args=(device,),
-            name=f"Connect-{device.name}",
-        )
-        threads.append(thread)
-    # Start all threads
-    start_time = time.time()
-    for thread in threads:
-        thread.start()
 
-    # Wait for all threads to complete
-    for thread in threads:
-        thread.join()
+    device_list = list(testbed)
+
+    start_time = time.time()
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=len(device_list)
+    ) as executor:
+        # Submit all device connection tasks to the executor
+        futures = [executor.submit(connect_to_device, device) for device in device_list]
+
+        # Wait for all tasks to complete
+        concurrent.futures.wait(futures)
 
     total_time = time.time() - start_time
     logger.info(
@@ -85,27 +80,22 @@ def disconnect_single_device(device) -> None:
 
 
 def disconnect_from_testbed_devices(testbed) -> None:
-    """Disconnect from devices within a testbed using multithreading."""
+    """Disconnect from devices within a testbed using thread pool."""
     logger.info("Disconnecting from all devices")
 
-    # Create threads for each device
-    threads = []
-    for device in testbed:
-        thread = threading.Thread(
-            target=disconnect_single_device,
-            args=(device,),
-            name=f"Disconnect-{device.name}",
-        )
-        threads.append(thread)
+    device_list = list(testbed)
 
-    # Start all threads
     start_time = time.time()
-    for thread in threads:
-        thread.start()
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=len(device_list)
+    ) as executor:
+        # Submit all device disconnection tasks to the executor
+        futures = [
+            executor.submit(disconnect_single_device, device) for device in device_list
+        ]
 
-    # Wait for all threads to complete
-    for thread in threads:
-        thread.join()
+        # Wait for all tasks to complete
+        concurrent.futures.wait(futures)
 
     total_time = time.time() - start_time
     logger.info("All device disconnections completed in %.2f seconds", total_time)
