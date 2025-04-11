@@ -32,13 +32,14 @@ class DeviceAdapter:
         device (PyatsDevice): The underlying pyATS Device object
     """
 
-    def __init__(self, device: PyatsDevice):
+    def __init__(self, device: PyatsDevice, testbed_adapter: "TestbedAdapter"):
         """Initialize the device adapter.
 
         Args:
             device: The pyATS Device object to adapt
         """
         self.device = device
+        self.testbed_adapter = testbed_adapter
 
     @property
     def name(self) -> str:
@@ -151,7 +152,7 @@ class TestbedAdapter:
         # Lazily create device adapters as needed
         for device_name, device in self.testbed.devices.items():
             if device_name not in self._device_adapters:
-                self._device_adapters[device_name] = DeviceAdapter(device)
+                self._device_adapters[device_name] = DeviceAdapter(device, self)
         return self._device_adapters
 
     def get_device(self, device_name: str) -> DeviceAdapter:
