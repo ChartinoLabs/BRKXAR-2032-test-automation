@@ -4,7 +4,6 @@ from typing import Any, Iterator, cast
 
 from pyats.topology.testbed import Testbed as PyatsTestbed
 from utils.adapters.device import DeviceAdapter
-from utils.results import TestResultCollector
 from utils.types import ParameterData
 
 
@@ -28,7 +27,6 @@ class TestbedAdapter:
         """
         self.testbed = testbed
         self._device_adapters: dict[str, DeviceAdapter] = {}
-        self.result_collector = TestResultCollector()
         self.parameters: ParameterData = {}
 
     @property

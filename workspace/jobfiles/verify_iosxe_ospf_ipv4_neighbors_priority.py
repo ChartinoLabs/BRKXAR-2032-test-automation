@@ -128,6 +128,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
         parsed_data = run_command_on_devices(
             command="show ip ospf neighbor",
             testbed=context.testbed_adapter,
+            context=context,
         )
 
         # Collect OSPF data from all devices
@@ -135,7 +136,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
             execution_result = parsed_data.get(device.name)
             if execution_result is None:
                 msg = f"No OSPF data found for device {device.name}"
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.FAILED,
                     message=msg,
                 )
@@ -148,7 +149,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
             if "interfaces" not in data or not data["interfaces"]:
                 logger.warning(f"No OSPF interfaces found on {device.name}")
                 all_devices_data[device.name] = {}
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.INFO,
                     message=f"No OSPF interfaces found on {device.name}",
                 )
@@ -168,13 +169,13 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                     device_ospf_data[interface_name]["neighbors"][neighbor_id] = {
                         "priority": neighbor_data.get("priority", ""),
                     }
-                    context.testbed_adapter.result_collector.add_result(
+                    context.test_result_collector.add_result(
                         status=ResultStatus.INFO,
                         message=f"Found neighbor {neighbor_id} with priority {neighbor_data.get('priority', '')}",
                     )
 
             all_devices_data[device.name] = device_ospf_data
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.PASSED,
                 message=f"Successfully gathered OSPF data from {device.name}",
             )
@@ -195,7 +196,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                 msg = (
                     f"Expected device {expected_device_name} not found in current state"
                 )
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.FAILED, message=msg
                 )
                 self.failed(msg)
@@ -204,7 +205,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
             logger.info(
                 f"Found expected device {expected_device_name} in current state"
             )
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.PASSED,
                 message=f"Found expected device {expected_device_name} in current state",
             )
@@ -221,7 +222,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                         f"Interface {interface_name} not found in current state for device "
                         f"{expected_device_name}"
                     )
-                    context.testbed_adapter.result_collector.add_result(
+                    context.test_result_collector.add_result(
                         status=ResultStatus.FAILED, message=msg
                     )
                     self.failed(msg)
@@ -231,7 +232,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                     f"Found expected interface {interface_name} in current state for device "
                     f"{expected_device_name}"
                 )
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.PASSED,
                     message=f"Found expected interface {interface_name}",
                 )
@@ -249,7 +250,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                     interface_name,
                     expected_device_name,
                 )
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.INFO,
                     message=f"Found {len(actual_neighbors)} neighbors, expecting {len(expected_neighbors)}",
                 )
@@ -267,7 +268,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                             f"Neighbor {neighbor_id} on interface {interface_name} not found in "
                             f"current state for device {expected_device_name}"
                         )
-                        context.testbed_adapter.result_collector.add_result(
+                        context.test_result_collector.add_result(
                             status=ResultStatus.FAILED, message=msg
                         )
                         self.failed(msg)
@@ -297,7 +298,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                             "the expected priority of this neighbor which is "
                             f"{expected_neighbor_priority}"
                         )
-                        context.testbed_adapter.result_collector.add_result(
+                        context.test_result_collector.add_result(
                             status=ResultStatus.FAILED, message=msg
                         )
                         self.failed(msg)
@@ -307,7 +308,7 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
                             f"{interface_name} is {current_neighbor_priority}, which matches the "
                             f"expected priority of this neighbor which is {expected_neighbor_priority}"
                         )
-                        context.testbed_adapter.result_collector.add_result(
+                        context.test_result_collector.add_result(
                             status=ResultStatus.PASSED,
                             message=f"Neighbor {neighbor_id} priority matches expected: {current_neighbor_priority}",
                         )
@@ -341,9 +342,9 @@ class CommonCleanup(aetest.CommonCleanup):
                 setup=SETUP,
                 procedure=PROCEDURE,
                 pass_fail_criteria=PASS_FAIL_CRITERIA,
-                results=context.testbed_adapter.result_collector.results,
-                command_executions=context.testbed_adapter.result_collector.command_executions,
-                status=context.testbed_adapter.result_collector.status,
+                results=context.test_result_collector.results,
+                command_executions=context.test_result_collector.command_executions,
+                status=context.test_result_collector.status,
                 parameters=context.testbed_adapter.parameters,
             )
 

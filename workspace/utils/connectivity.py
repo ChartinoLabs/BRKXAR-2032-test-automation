@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
 from utils.adapters import DeviceAdapter, TestbedAdapter
+from utils.context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ class CommandExecutionResult:
 
 
 def run_command_on_device(
-    command: str, device: DeviceAdapter
+    command: str, device: DeviceAdapter, context: Context
 ) -> CommandExecutionResult:
     """Runs a command on a device and parses the output."""
     output = device.execute(command)
@@ -90,7 +91,7 @@ def run_command_on_device(
     )
 
     # Record this command execution
-    device.testbed_adapter.result_collector.add_command_execution(
+    context.test_result_collector.add_command_execution(
         device_name=device.name,
         command=command,
         output=output,
@@ -107,6 +108,7 @@ def run_command_on_device(
 
 def run_command_on_devices(
     command: str,
+    context: Context,
     testbed: TestbedAdapter | None = None,
     device: DeviceAdapter | None = None,
     devices: list[DeviceAdapter] | None = None,
@@ -134,7 +136,7 @@ def run_command_on_devices(
     ) as executor:
         # Create a dictionary mapping futures to device names for result tracking
         future_to_device = {
-            executor.submit(run_command_on_device, command, device): device
+            executor.submit(run_command_on_device, command, device, context): device
             for device in target_devices
         }
 

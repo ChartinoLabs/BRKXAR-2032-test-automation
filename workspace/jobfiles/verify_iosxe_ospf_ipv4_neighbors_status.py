@@ -129,6 +129,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
         parsed_data = run_command_on_devices(
             command="show ip ospf neighbor",
             testbed=context.testbed_adapter,
+            context=context,
         )
 
         # Collect OSPF data from all devices
@@ -136,7 +137,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
             execution_result = parsed_data.get(device.name)
             if execution_result is None:
                 msg = f"No OSPF data found for device {device.name}"
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.FAILED,
                     message=msg,
                 )
@@ -148,7 +149,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
             # Check if there are any OSPF interfaces and neighbors
             if "interfaces" not in data or not data["interfaces"]:
                 all_devices_data[device.name] = {}
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.INFO,
                     message=f"No OSPF interfaces found on {device.name}",
                 )
@@ -168,13 +169,13 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                     device_ospf_data[interface_name]["neighbors"][neighbor_id] = {
                         "state": neighbor_data.get("state", ""),
                     }
-                    context.testbed_adapter.result_collector.add_result(
+                    context.test_result_collector.add_result(
                         status=ResultStatus.INFO,
                         message=f"Found neighbor {neighbor_id} in state {neighbor_data.get('state', '')}",
                     )
 
             all_devices_data[device.name] = device_ospf_data
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.PASSED,
                 message=f"Successfully gathered OSPF data from {device.name}",
             )
@@ -195,13 +196,13 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                 msg = (
                     f"Expected device {expected_device_name} not found in current state"
                 )
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.FAILED, message=msg
                 )
                 self.failed(msg)
                 continue
 
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.PASSED,
                 message=f"Found expected device {expected_device_name} in current state",
             )
@@ -218,13 +219,13 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                         f"Interface {interface_name} not found in current state for device "
                         f"{expected_device_name}"
                     )
-                    context.testbed_adapter.result_collector.add_result(
+                    context.test_result_collector.add_result(
                         status=ResultStatus.FAILED, message=msg
                     )
                     self.failed(msg)
                     continue
 
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.PASSED,
                     message=(
                         f"Found expected interface {interface_name} in current state for device "
@@ -245,7 +246,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                     interface_name,
                     expected_device_name,
                 )
-                context.testbed_adapter.result_collector.add_result(
+                context.test_result_collector.add_result(
                     status=ResultStatus.INFO,
                     message=f"Found {len(actual_neighbors)} neighbors, expecting {len(expected_neighbors)}",
                 )
@@ -263,7 +264,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                             f"Neighbor {neighbor_id} on interface {interface_name} not found in "
                             f"current state for device {expected_device_name}"
                         )
-                        context.testbed_adapter.result_collector.add_result(
+                        context.test_result_collector.add_result(
                             status=ResultStatus.FAILED, message=msg
                         )
                         self.failed(msg)
@@ -293,7 +294,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                             "the expected state of this neighbor which is "
                             f"{expected_neighbor_state}"
                         )
-                        context.testbed_adapter.result_collector.add_result(
+                        context.test_result_collector.add_result(
                             status=ResultStatus.FAILED, message=msg
                         )
                         self.failed(msg)
@@ -303,7 +304,7 @@ class VerifyOSPFNeighborsStatus(aetest.Testcase):
                             f"{interface_name} is {current_neighbor_state}, which matches the "
                             f"expected state of this neighbor which is {expected_neighbor_state}"
                         )
-                        context.testbed_adapter.result_collector.add_result(
+                        context.test_result_collector.add_result(
                             status=ResultStatus.PASSED,
                             message=f"Neighbor {neighbor_id} state matches expected: {current_neighbor_state}",
                         )
@@ -337,9 +338,9 @@ class CommonCleanup(aetest.CommonCleanup):
                 setup=SETUP,
                 procedure=PROCEDURE,
                 pass_fail_criteria=PASS_FAIL_CRITERIA,
-                results=context.testbed_adapter.result_collector.results,
-                command_executions=context.testbed_adapter.result_collector.command_executions,
-                status=context.testbed_adapter.result_collector.status,
+                results=context.test_result_collector.results,
+                command_executions=context.test_result_collector.command_executions,
+                status=context.test_result_collector.status,
                 parameters=context.testbed_adapter.parameters,
             )
 

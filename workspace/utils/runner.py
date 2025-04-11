@@ -28,13 +28,13 @@ def handle_test_execution_mode(
         if save_parameters_to_file(current_state, context.parameters_file):
             result_msg = "Successfully learned parameters and saved to file"
             passing_callable(result_msg)
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.PASSED, message=result_msg
             )
         else:
             result_msg = "Failed to save parameters to file"
             failing_callable(result_msg)
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.FAILED, message=result_msg
             )
     # TESTING MODE: Verify against parameters file
@@ -45,7 +45,7 @@ def handle_test_execution_mode(
         if not expected_parameters:
             result_msg = "No expected parameters found. Run in learning mode first."
             failing_callable(result_msg)
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.FAILED, message=result_msg
             )
             return
@@ -58,12 +58,12 @@ def handle_test_execution_mode(
                 "validated against the expected parameters."
             )
             passing_callable(result_msg)
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.PASSED, message=result_msg
             )
         except Exception as e:
             result_msg = str(e)
             failing_callable(result_msg)
-            context.testbed_adapter.result_collector.add_result(
+            context.test_result_collector.add_result(
                 status=ResultStatus.FAILED, message=result_msg
             )

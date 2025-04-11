@@ -12,6 +12,7 @@ from utils.constants import (
 )
 from utils.context import Context
 from utils.reports import aggregate_reports, ensure_results_dirs
+from utils.results import TestResultCollector
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -80,7 +81,7 @@ def main(runtime):
             task_id=task_id,
             mode=args.mode,
             testbed_adapter=testbed_adapter,
-            test_result_collector=testbed_adapter.result_collector,
+            test_result_collector=TestResultCollector(),
             parameters_file=fully_qualified_parameters_file,
         )
 
