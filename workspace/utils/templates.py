@@ -55,7 +55,8 @@ def render_template(template_path: str, **context):
     Returns:
         Rendered template as string
     """
-    template = get_jinja_environment(template_path)
+    env = get_jinja_environment(TEMPLATES_DIR)
+    template = env.get_template(template_path)
     return template.render(**context)
 
 
