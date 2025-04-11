@@ -10,6 +10,7 @@ from utils.cli import define_parser
 from utils.constants import (
     PARAMETERS_DIR,
 )
+from utils.context import Context
 from utils.reports import aggregate_reports, ensure_results_dirs
 
 logger = logging.getLogger(__name__)
@@ -73,9 +74,20 @@ def main(runtime):
             "Executing test case '%s' tied to jobfile at '%s'", task_id, jobfile_path
         )
 
+        context = Context(
+            test_case_identifier=test_case_identifier,
+            test_case_title=test_case_data["title"],
+            task_id=task_id,
+            mode=args.mode,
+            testbed_adapter=testbed_adapter,
+            test_result_collector=testbed_adapter.result_collector,
+            parameters_file=fully_qualified_parameters_file,
+        )
+
         run(
             testscript=str(jobfile_path),
             runtime=runtime,
+            context=context,
             mode=args.mode,
             task_id=task_id,
             parameters_file=fully_qualified_parameters_file,
