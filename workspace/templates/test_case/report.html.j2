@@ -167,6 +167,10 @@
             margin-top: 0;
             margin-bottom: 20px;
             color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         pre {
@@ -345,36 +349,56 @@
     </header>
 
     <div class="container">
-        <section>
-            <h2>Description</h2>
-            {{ description_html|safe }}
+        <section id="section-description">
+            <h2 onclick="toggleCollapse('section-description-content')">
+                Description <span class="chevron"></span>
+            </h2>
+            <div id="section-description-content">
+                {{ description_html|safe }}
+            </div>
         </section>
 
-        <section>
-            <h2>Setup</h2>
-            {{ setup_html|safe }}
+        <section id="section-setup">
+            <h2 onclick="toggleCollapse('section-setup-content')">
+                Setup <span class="chevron"></span>
+            </h2>
+            <div id="section-setup-content">
+                {{ setup_html|safe }}
+            </div>
         </section>
 
-        <section>
-            <h2>Procedure</h2>
-            {{ procedure_html|safe }}
+        <section id="section-procedure">
+            <h2 onclick="toggleCollapse('section-procedure-content')">
+                Procedure <span class="chevron"></span>
+            </h2>
+            <div id="section-procedure-content">
+                {{ procedure_html|safe }}
+            </div>
         </section>
 
-        <section>
-            <h2>Pass/Fail Criteria</h2>
-            {{ criteria_html|safe }}
+        <section id="section-criteria">
+            <h2 onclick="toggleCollapse('section-criteria-content')">
+                Pass/Fail Criteria <span class="chevron"></span>
+            </h2>
+            <div id="section-criteria-content">
+                {{ criteria_html|safe }}
+            </div>
         </section>
 
-        <section>
-            <h2>Results</h2>
-            {% for result in results %}
-                {% set result_style = result.status|status_style %}
-                <div class="result-item result-{{ result_style.css_class|replace('-status', '') }}">
-                    <div class="result-message">
-                        {{ result.message }}
+        <section id="section-results">
+            <h2 onclick="toggleCollapse('section-results-content')">
+                Results <span class="chevron"></span>
+            </h2>
+            <div id="section-results-content">
+                {% for result in results %}
+                    {% set result_style = result.status|status_style %}
+                    <div class="result-item result-{{ result_style.css_class|replace('-status', '') }}">
+                        <div class="result-message">
+                            {{ result.message }}
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         </section>
 
         {% if command_executions %}
@@ -432,10 +456,19 @@
                         header.classList.toggle('collapsed');
                     }
                 }
+                // For main sections toggle the content-collapsed class
+                else if (id.startsWith('section-')) {
+                    element.classList.toggle('content-collapsed');
+                    // Find and toggle the chevron in the header that triggered this section
+                    const header = document.querySelector(`h2[onclick*="${id}"]`);
+                    if (header) {
+                        header.classList.toggle('collapsed');
+                    }
+                }
             }
         }
 
-        // Initialize all sections as expanded
+        // Initialize sections
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize all parsed data sections as collapsed by default
             const parsedDataSections = document.querySelectorAll('[id^="parsed-data-"]');
