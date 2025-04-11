@@ -8,7 +8,7 @@ from utils.parameters import (
     load_parameters_from_file,
     save_parameters_to_file,
 )
-from utils.types import ParameterData, ResultStatus, RunningMode
+from utils.types import ParameterData, ResultStatus
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,6 @@ def handle_test_execution_mode(
     context: Context,
     current_state_callable: Callable[[Context], dict],
     comparison_callable: Callable[[dict, ParameterData, Context], None],
-    mode: RunningMode,
-    parameters_file: str,
     passing_callable: Callable[[str], None],
     failing_callable: Callable[[str], None],
 ) -> None:
@@ -26,8 +24,8 @@ def handle_test_execution_mode(
     current_state = current_state_callable(context)
 
     # LEARNING MODE: Save the collected data to parameters file
-    if mode == "learning":
-        if save_parameters_to_file(current_state, parameters_file):
+    if context.mode == "learning":
+        if save_parameters_to_file(current_state, context.parameters_file):
             result_msg = "Successfully learned parameters and saved to file"
             passing_callable(result_msg)
             context.testbed_adapter.result_collector.add_result(
@@ -42,7 +40,7 @@ def handle_test_execution_mode(
     # TESTING MODE: Verify against parameters file
     else:
         # Load expected parameters
-        expected_parameters = load_parameters_from_file(parameters_file)
+        expected_parameters = load_parameters_from_file(context.parameters_file)
         context.testbed_adapter.parameters = expected_parameters
         if not expected_parameters:
             result_msg = "No expected parameters found. Run in learning mode first."

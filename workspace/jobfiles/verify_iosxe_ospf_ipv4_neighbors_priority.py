@@ -322,8 +322,6 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
             context,
             self.gather_current_state,
             self.compare_expected_parameters_to_current_state,
-            self.mode,
-            context.parameters_file,
             self.passed,
             self.failed,
         )
