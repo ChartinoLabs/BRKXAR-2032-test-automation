@@ -10,5 +10,5 @@ wheels/
 .venv
 
 # pyATS test-specific directories
-./test_results/*
-./test_report/*
+test_results/*
+test_report/*
