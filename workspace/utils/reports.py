@@ -7,6 +7,7 @@ from typing import Any
 
 import markdown
 from jinja2 import BaseLoader, Environment, StrictUndefined
+from utils import templates
 from utils.constants import (
     AGGREGATED_REPORT_FILENAME,
     REPORT_ASSETS_DIR,
@@ -75,7 +76,8 @@ def generate_job_report(
 
     passed = status == ResultStatus.PASSED
 
-    jinja_environment = Environment(
+    # Create Jinja environment for the content templates (not the report template)
+    content_env = Environment(
         loader=BaseLoader,
         extensions=["jinja2.ext.do"],
         trim_blocks=True,
@@ -83,13 +85,13 @@ def generate_job_report(
         undefined=StrictUndefined,
     )
 
-    # Prepare templates
-    description_template = jinja_environment.from_string(description)
-    setup_template = jinja_environment.from_string(setup)
-    procedure_template = jinja_environment.from_string(procedure)
-    pass_fail_criteria_template = jinja_environment.from_string(pass_fail_criteria)
+    # Prepare content templates
+    description_template = content_env.from_string(description)
+    setup_template = content_env.from_string(setup)
+    procedure_template = content_env.from_string(procedure)
+    pass_fail_criteria_template = content_env.from_string(pass_fail_criteria)
 
-    # Render with parameters as necessary
+    # Render content with parameters as necessary
     if parameters:
         rendered_description = description_template.render(parameters=parameters)
         rendered_setup = setup_template.render(parameters=parameters)
@@ -107,74 +109,30 @@ def generate_job_report(
     rendered_procedure_html = convert_markdown_to_html(rendered_procedure)
     rendered_criteria_html = convert_markdown_to_html(rendered_criteria)
 
-    # Construct HTML variant of results.
-    html_results = ""
+    # Format results for the template
+    formatted_results = []
     for result in results:
-        # Font color should be a legible red if failed, and be a normal black if passed
-        color = "#dc3545" if result["status"] != ResultStatus.PASSED else "#000000"
-        html_results += f"""
-            <div style="color: {color};">
-                {result["message"]}
-            </div>
-            <br />
-"""
+        formatted_results.append(
+            {
+                "message": result["message"],
+                "status": "PASSED"
+                if result["status"] == ResultStatus.PASSED
+                else "FAILED",
+            }
+        )
 
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>{title} - Test Results</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            .result-{{ 'pass' if passed else 'fail' }} {{
-                color: {{ '#28a745' if passed else '#dc3545' }};
-                font-weight: bold;
-            }}
-            section {{ margin-bottom: 30px; }}
-            pre {{ background-color: #f5f5f5; padding: 10px; border-radius: 5px; overflow: auto; }}
-            code {{ font-family: Consolas, Monaco, 'Andale Mono', monospace; }}
-            table {{ border-collapse: collapse; width: 100%; margin: 15px 0; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #f2f2f2; }}
-        </style>
-    </head>
-    <body>
-        <h1>{title}</h1>
-        <div class="result-{"pass" if passed else "fail"}">
-            Test Status: {"PASSED" if passed else "FAILED"}
-        </div>
-
-        <section>
-            <h2>Description</h2>
-            {rendered_description_html}
-        </section>
-
-        <section>
-            <h2>Setup</h2>
-            {rendered_setup_html}
-        </section>
-
-        <section>
-            <h2>Procedure</h2>
-            {rendered_procedure_html}
-        </section>
-
-        <section>
-            <h2>Pass/Fail Criteria</h2>
-            {rendered_criteria_html}
-        </section>
-
-        <section>
-            <h2>Results</h2>
-            {html_results}
-        </section>
-
-        <footer>
-            <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-        </footer>
-    </body>
-    </html>
-    """
+    # Render the report using the template utility
+    html_content = templates.render_template(
+        "test_case/report.html.j2",
+        title=title,
+        description_html=rendered_description_html,
+        setup_html=rendered_setup_html,
+        procedure_html=rendered_procedure_html,
+        criteria_html=rendered_criteria_html,
+        results=formatted_results,
+        passed=passed,
+        generation_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    )
 
     output_file = TEST_RESULTS_DIR / f"{task_id}_results.html"
     output_file.write_text(html_content)
@@ -214,57 +172,33 @@ def aggregate_reports() -> Path:
     passed_tests = sum(1 for result in all_results if result["passed"])
     success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
 
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Test Results Summary</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            .summary {{ margin: 20px 0; padding: 20px; background: #f8f9fa; }}
-            .test-result {{ margin: 10px 0; }}
-            .pass {{ color: #28a745; }}
-            .fail {{ color: #dc3545; }}
-        </style>
-    </head>
-    <body>
-        <h1>Test Results Summary</h1>
-
-        <div class="summary">
-            <h2>Executive Summary</h2>
-            <p>Total Tests: {total_tests}</p>
-            <p>Passed: {passed_tests}</p>
-            <p>Failed: {total_tests - passed_tests}</p>
-            <p>Success Rate: {success_rate:.1f}%</p>
-        </div>
-
-        <h2>Test Results</h2>
-        <div class="test-results">
-    """
-
+    # Format results for the template
+    formatted_results = []
     for result in all_results:
-        status_class = "pass" if result["passed"] else "fail"
-
         # Copy result file from current location to REPORT_RESULTS_DIR
         result_file = Path(result["result_file"])
         result_file_dest = REPORT_RESULTS_DIR / result_file.name
         result_file_dest.write_text(result_file.read_text())
 
-        html_content += f"""
-            <div class="test-result">
-                <h3>{result["title"]}</h3>
-                <p class="{status_class}">Status: {"PASSED" if result["passed"] else "FAILED"}</p>
-                <p><a href="{result_file_dest.relative_to(REPORT_DIR)}">
-                    View Detailed Results
-                </a></p>
-            </div>
-        """
+        formatted_results.append(
+            {
+                "task_id": result["task_id"],
+                "title": result["title"],
+                "passed": result["passed"],
+                "timestamp": result["timestamp"],
+                "result_file_path": str(result_file_dest.relative_to(REPORT_DIR)),
+            }
+        )
 
-    html_content += """
-        </div>
-    </body>
-    </html>
-    """
+    # Render the report using the template utility
+    html_content = templates.render_template(
+        "summary/report.html.j2",
+        generation_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        total_tests=total_tests,
+        passed_tests=passed_tests,
+        success_rate=success_rate,
+        results=formatted_results,
+    )
 
     output_file = REPORT_DIR / AGGREGATED_REPORT_FILENAME
     output_file.write_text(html_content)
