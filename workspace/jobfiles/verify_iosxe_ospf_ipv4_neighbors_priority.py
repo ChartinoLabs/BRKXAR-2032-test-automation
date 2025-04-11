@@ -20,11 +20,10 @@ from utils.connectivity import (
     verify_testbed_device_connectivity,
 )
 from utils.parameters import (
-    load_parameters_from_file,
-    save_parameters_to_file,
     validate_parameters_directory_exists,
 )
 from utils.reports import generate_job_report
+from utils.runner import handle_test_execution_mode
 from utils.types import ResultStatus, RunningMode
 
 logger = logging.getLogger(__name__)
@@ -361,53 +360,15 @@ class VerifyOSPFNeighborsPriority(aetest.Testcase):
         Learning mode: Learn OSPF neighbor priority values and save to parameters file
         Testing mode: Verify OSPF neighbor priority values against parameters file
         """
-        current_state = self.gather_current_state(testbed_adapter)
-
-        # LEARNING MODE: Save the collected data to parameters file
-        if self.mode == "learning":
-            if save_parameters_to_file(current_state, parameters_file):
-                result_msg = "Successfully learned OSPF neighbor priority values and saved to parameters file"
-                self.passed(result_msg)
-                testbed_adapter.result_collector.add_result(
-                    status=ResultStatus.PASSED, message=result_msg
-                )
-            else:
-                result_msg = (
-                    "Failed to save OSPF neighbor priority values to parameters file"
-                )
-                self.failed(result_msg)
-                testbed_adapter.result_collector.add_result(
-                    status=ResultStatus.FAILED, message=result_msg
-                )
-        # TESTING MODE: Verify against parameters file
-        else:  # testing mode
-            # Load expected parameters
-            expected_parameters = load_parameters_from_file(parameters_file)
-            testbed_adapter.parameters = expected_parameters
-            if not expected_parameters:
-                result_msg = "No expected parameters found. Run in learning mode first."
-                self.failed(result_msg)
-                testbed_adapter.result_collector.add_result(
-                    status=ResultStatus.FAILED, message=result_msg
-                )
-                return
-
-            logger.info("Comparing current state to expected parameters")
-            try:
-                self.compare_expected_parameters_to_current_state(
-                    current_state, expected_parameters, testbed_adapter
-                )
-                result_msg = "All OSPF neighbor priority values on all devices verified successfully"
-                self.passed(result_msg)
-                testbed_adapter.result_collector.add_result(
-                    status=ResultStatus.PASSED, message=result_msg
-                )
-            except Exception as e:
-                result_msg = str(e)
-                self.failed(result_msg)
-                testbed_adapter.result_collector.add_result(
-                    status=ResultStatus.FAILED, message=result_msg
-                )
+        handle_test_execution_mode(
+            testbed_adapter,
+            self.gather_current_state,
+            self.compare_expected_parameters_to_current_state,
+            self.mode,
+            parameters_file,
+            self.passed,
+            self.failed,
+        )
 
 
 class CommonCleanup(aetest.CommonCleanup):
