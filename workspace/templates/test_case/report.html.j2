@@ -304,13 +304,13 @@
 
         /* Collapsible sections */
         .chevron::before {
-            content: '▼';
+            content: '\25BC'; /* Down-pointing triangle HTML entity */
             font-size: 12px;
             transition: transform 0.3s;
         }
 
         .collapsed .chevron::before {
-            content: '▶';
+            content: '\25B6'; /* Right-pointing triangle HTML entity */
         }
 
         .content-collapsed {
