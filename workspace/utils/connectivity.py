@@ -88,6 +88,12 @@ def run_command_on_device(
         device.name,
         json.dumps(data, indent=4),
     )
+
+    # Record this command execution
+    device.testbed_adapter.result_collector.add_command_execution(
+        device_name=device.name, command=command, output=output
+    )
+
     return CommandExecutionResult(
         device=device,
         command=command,
