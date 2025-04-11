@@ -8,18 +8,9 @@ from jinja2 import BaseLoader, Environment, FileSystemLoader, StrictUndefined
 # Get the absolute path to the templates directory
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
-# Create Jinja2 environment with the templates directory
-jinja_env = Environment(
-    loader=FileSystemLoader(TEMPLATES_DIR),
-    extensions=["jinja2.ext.do"],
-    trim_blocks=True,
-    lstrip_blocks=True,
-    undefined=StrictUndefined,
-)
-
 
 # Register custom filters
-def format_datetime(dt_str):
+def format_datetime(dt_str: str | datetime) -> str:
     """Format an ISO datetime string to a human-readable format."""
     if isinstance(dt_str, str):
         dt = datetime.fromisoformat(dt_str)
@@ -28,7 +19,30 @@ def format_datetime(dt_str):
     return dt.strftime("%Y-%m-%d %H:%M")
 
 
-jinja_env.filters["format_datetime"] = format_datetime
+def get_jinja_environment(directory: str | Path | None = None) -> Environment:
+    """Create a Jinja2 environment for rendering templates.
+
+    Args:
+        directory: Directory containing the templates (default: None)
+
+    Returns:
+        Jinja2 Environment configured for the specified directory
+    """
+    if directory is not None:
+        loader = FileSystemLoader(str(directory))
+    else:
+        loader = BaseLoader()
+
+    environment = Environment(
+        loader=loader,
+        extensions=["jinja2.ext.do"],
+        trim_blocks=True,
+        lstrip_blocks=True,
+        undefined=StrictUndefined,
+    )
+    environment.filters["format_datetime"] = format_datetime
+
+    return environment
 
 
 def render_template(template_path: str, **context):
@@ -41,23 +55,8 @@ def render_template(template_path: str, **context):
     Returns:
         Rendered template as string
     """
-    template = jinja_env.get_template(template_path)
+    template = get_jinja_environment(template_path)
     return template.render(**context)
-
-
-def get_string_environment():
-    """Create a Jinja2 environment for rendering strings (not files).
-
-    Returns:
-        Jinja2 Environment configured for string-based templates
-    """
-    return Environment(
-        loader=BaseLoader(),
-        extensions=["jinja2.ext.do"],
-        trim_blocks=True,
-        lstrip_blocks=True,
-        undefined=StrictUndefined,
-    )
 
 
 def render_string_template(template_string: str, **context):
@@ -70,6 +69,6 @@ def render_string_template(template_string: str, **context):
     Returns:
         Rendered template as string
     """
-    env = get_string_environment()
+    env = get_jinja_environment()
     template = env.from_string(template_string)
     return template.render(**context)
