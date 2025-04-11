@@ -344,6 +344,7 @@ class CommonCleanup(aetest.CommonCleanup):
                 procedure=PROCEDURE,
                 pass_fail_criteria=PASS_FAIL_CRITERIA,
                 results=testbed_adapter.result_collector.results,
+                command_executions=testbed_adapter.result_collector.command_executions,
                 status=testbed_adapter.result_collector.status,
                 parameters=testbed_adapter.parameters,
             )

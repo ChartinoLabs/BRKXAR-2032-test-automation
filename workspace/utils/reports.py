@@ -14,7 +14,7 @@ from utils.constants import (
     REPORT_RESULTS_DIR,
     TEST_RESULTS_DIR,
 )
-from utils.types import Result, ResultStatus
+from utils.types import CommandExecution, Result, ResultStatus
 
 
 def ensure_results_dirs():
@@ -52,6 +52,7 @@ def generate_job_report(
     procedure: str,
     pass_fail_criteria: str,
     results: list[Result],
+    command_executions: list[CommandExecution],
     status: ResultStatus,
     parameters: dict[str, Any],
 ) -> Path:
@@ -118,6 +119,7 @@ def generate_job_report(
         procedure_html=rendered_procedure_html,
         criteria_html=rendered_criteria_html,
         results=formatted_results,
+        command_executions=command_executions,  # Add command executions to the template context
         status=status,  # Use the status directly
         passed=passed,  # Also include the boolean value for backward compatibility
         generation_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

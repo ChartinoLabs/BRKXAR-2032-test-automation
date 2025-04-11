@@ -234,6 +234,46 @@
             text-decoration: underline;
         }
 
+        /* CLI Terminal Styling */
+        .cli-container {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .cli-header {
+            background-color: #f5f5f5;
+            padding: 8px 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .cli-content {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            font-family: 'Source Code Pro', Consolas, Monaco, monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .cli-prompt {
+            color: #98c379;
+        }
+
+        .cli-command {
+            color: #61afef;
+            font-weight: bold;
+        }
+
+        .cli-output {
+            color: #abb2bf;
+            display: block;
+            margin-top: 10px;
+        }
+
         /* Responsive design */
         @media (max-width: 768px) {
             .container {
@@ -293,6 +333,21 @@
                 </div>
             {% endfor %}
         </section>
+
+        {% if command_executions %}
+        <section>
+            <h2>Command Executions</h2>
+            {% for execution in command_executions %}
+            <div class="cli-container">
+                <div class="cli-header">Device: {{ execution.device_name }}</div>
+                <div class="cli-content">
+                    <span class="cli-prompt">{{ execution.device_name }}#</span> <span class="cli-command">{{ execution.command }}</span>
+                    <span class="cli-output">{{ execution.output }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
 
         <footer>
             <p>Generated: {{ generation_time }}</p>
