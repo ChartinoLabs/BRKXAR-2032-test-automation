@@ -7,7 +7,10 @@ import yaml
 from pyats.easypy import run
 from utils.adapters import TestbedAdapter
 from utils.cli import define_parser
-from utils.constants import PARAMETERS_DIR
+from utils.constants import (
+    PARAMETERS_DIR,
+)
+from utils.reports import aggregate_reports, ensure_results_dirs
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -22,6 +25,9 @@ def main(runtime):
     Args:
         runtime: runtime object provided by pyATS
     """
+    # Create necessary directories for results
+    ensure_results_dirs()
+
     # Parse command-line arguments
     args, unknown = define_parser().parse_known_args()
 
@@ -75,6 +81,11 @@ def main(runtime):
             parameters_file=fully_qualified_parameters_file,
             testbed_adapter=testbed_adapter,
         )
+
+    # Aggregate all results into a single report
+    logger.info("Aggregating test results into final report")
+    final_report = aggregate_reports()
+    logger.info("Final report generated at: %s", final_report)
 
 
 if __name__ == "__main__":
