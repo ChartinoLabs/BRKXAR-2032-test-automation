@@ -240,6 +240,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             overflow: hidden;
+            margin-bottom: 15px;
         }
 
         .cli-header {
@@ -248,6 +249,10 @@
             border-bottom: 1px solid #ddd;
             font-weight: bold;
             color: #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .cli-content {
@@ -272,6 +277,44 @@
             color: #abb2bf;
             display: block;
             margin-top: 10px;
+        }
+
+        /* Parsed Output Styling */
+        .parsed-data-header {
+            background-color: #2d333b;
+            color: #ddd;
+            padding: 8px 15px;
+            border-top: 1px solid #444;
+            border-bottom: 1px solid #444;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .parsed-data-content {
+            background-color: #1a1f26;
+            color: #56b6c2;
+            padding: 15px;
+            font-family: 'Source Code Pro', Consolas, Monaco, monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Collapsible sections */
+        .chevron::before {
+            content: '▼';
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .collapsed .chevron::before {
+            content: '▶';
+        }
+
+        .content-collapsed {
+            display: none;
         }
 
         /* Responsive design */
@@ -338,11 +381,23 @@
         <section>
             <h2>Command Executions</h2>
             {% for execution in command_executions %}
-            <div class="cli-container">
-                <div class="cli-header">Device: {{ execution.device_name }}</div>
-                <div class="cli-content">
-                    <span class="cli-prompt">{{ execution.device_name }}#</span> <span class="cli-command">{{ execution.command }}</span>
-                    <span class="cli-output">{{ execution.output }}</span>
+            <div class="cli-container" id="device-{{ loop.index }}">
+                <div class="cli-header" onclick="toggleCollapse('device-{{ loop.index }}')">
+                    <span>Device: {{ execution.device_name }}</span>
+                    <span class="chevron"></span>
+                </div>
+                <div class="device-content">
+                    <div class="cli-content">
+<span class="cli-prompt">{{ execution.device_name }}#</span> <span class="cli-command">{{ execution.command }}</span>
+<span class="cli-output">{{ execution.output }}</span>
+                    </div>
+                    {% if execution.data %}
+                    <div class="parsed-data-header" onclick="toggleCollapse('parsed-data-{{ loop.index }}')">
+                        <span>Parsed Data</span>
+                        <span class="chevron"></span>
+                    </div>
+                    <div class="parsed-data-content" id="parsed-data-{{ loop.index }}">{{ execution.data | tojson(indent=2) }}</div>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -353,5 +408,39 @@
             <p>Generated: {{ generation_time }}</p>
         </footer>
     </div>
+
+    <script>
+        function toggleCollapse(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.classList.toggle('collapsed');
+
+                // For device containers, toggle the content differently
+                if (id.startsWith('device-')) {
+                    const content = element.querySelector('.device-content');
+                    if (content) {
+                        content.classList.toggle('content-collapsed');
+                    }
+                }
+                // For parsed data sections, toggle them directly
+                else if (id.startsWith('parsed-data-')) {
+                    element.classList.toggle('content-collapsed');
+                }
+            }
+        }
+
+        // Initialize all sections as expanded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all parsed data sections as collapsed by default
+            const parsedDataSections = document.querySelectorAll('[id^="parsed-data-"]');
+            parsedDataSections.forEach(function(section) {
+                section.classList.add('content-collapsed');
+                const header = section.previousElementSibling;
+                if (header && header.classList.contains('parsed-data-header')) {
+                    header.classList.add('collapsed');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
