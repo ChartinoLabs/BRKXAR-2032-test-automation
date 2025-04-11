@@ -2,7 +2,7 @@
 
 import logging
 
-from .types import ResultStatus
+from .types import CommandExecution, ResultStatus
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ class TestResultCollector:
     def __init__(self):
         """Initialize the result collector."""
         self.results = []
+        self.command_executions: list[CommandExecution] = []
 
     @property
     def status(self) -> ResultStatus:
@@ -47,5 +48,22 @@ class TestResultCollector:
             {
                 "status": status,
                 "message": message,
+            }
+        )
+
+    def add_command_execution(self, device_name: str, command: str, output: str):
+        """Add a command execution record to the collection.
+
+        Args:
+            device_name: Name of the device where the command was executed
+            command: The command that was executed
+            output: The output of the command execution
+        """
+        logger.debug("Recording command execution on %s: %s", device_name, command)
+        self.command_executions.append(
+            {
+                "device_name": device_name,
+                "command": command,
+                "output": output,
             }
         )
