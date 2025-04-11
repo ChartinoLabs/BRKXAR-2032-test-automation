@@ -168,11 +168,13 @@ def aggregate_reports() -> Path:
         result_file_dest = REPORT_RESULTS_DIR / result_file.name
         result_file_dest.write_text(result_file.read_text())
 
-        # Get status, with fallback to passed/failed boolean
+        # Get status from metadata
+        # The status field should contain the actual test status (PASSED/FAILED/etc.)
+        # not INFO which is just an individual result type
         status = result.get("status")
 
         # For serialized JSON, status may be stored as a string
-        if isinstance(status, str):
+        if isinstance(status, str) and status != "INFO":
             try:
                 status = ResultStatus(status)
             except ValueError:
@@ -182,8 +184,15 @@ def aggregate_reports() -> Path:
                     if result.get("passed", False)
                     else ResultStatus.FAILED
                 )
+        elif status == "INFO" or status == ResultStatus.INFO:
+            # If status is INFO, that's incorrect - use the passed boolean instead
+            status = (
+                ResultStatus.PASSED
+                if result.get("passed", False)
+                else ResultStatus.FAILED
+            )
 
-        # If status is missing, fall back to pass/fail boolean
+        # If status is missing or None, fall back to pass/fail boolean
         if status is None:
             status = (
                 ResultStatus.PASSED
@@ -196,7 +205,7 @@ def aggregate_reports() -> Path:
             passed_tests += 1
         elif status == ResultStatus.FAILED:
             failed_tests += 1
-        # Other statuses (INFO, SKIPPED, etc.) don't count as passed or failed
+        # Other statuses (SKIPPED, etc.) don't count as passed or failed
 
         formatted_results.append(
             {

@@ -21,9 +21,17 @@ class TestResultCollector:
 
     @property
     def status(self) -> ResultStatus:
-        """Get the overall status of the collected results."""
+        """Get the overall status of the collected results.
+
+        INFO results are ignored when determining the overall status.
+        If all results are INFO or PASSED, the status is PASSED.
+        Otherwise, returns the first non-PASSED, non-INFO status found.
+        """
         for result in self.results:
-            if result["status"] != ResultStatus.PASSED:
+            if (
+                result["status"] != ResultStatus.PASSED
+                and result["status"] != ResultStatus.INFO
+            ):
                 return result["status"]
         return ResultStatus.PASSED
 
