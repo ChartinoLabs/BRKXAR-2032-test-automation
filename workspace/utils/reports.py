@@ -184,6 +184,7 @@ def aggregate_reports() -> Path:
     # Calculate summary statistics
     total_tests = len(all_results)
     passed_tests = sum(1 for result in all_results if result["passed"])
+    success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
 
     html_content = f"""
     <!DOCTYPE html>
@@ -206,7 +207,7 @@ def aggregate_reports() -> Path:
             <p>Total Tests: {total_tests}</p>
             <p>Passed: {passed_tests}</p>
             <p>Failed: {total_tests - passed_tests}</p>
-            <p>Success Rate: {(passed_tests / total_tests) * 100:.1f}%</p>
+            <p>Success Rate: {success_rate:.1f}%</p>
         </div>
 
         <h2>Test Results</h2>
