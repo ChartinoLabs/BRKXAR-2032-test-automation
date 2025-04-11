@@ -45,8 +45,6 @@ DESCRIPTION = (
 )
 
 SETUP = (
-    "**Test Setup:**\n"
-    "\n"
     "* All devices are connected as per the network topology.\n"
     "* All devices are powered up and operational.\n"
     "* SSH connectivity to the devices is established.\n"
@@ -54,7 +52,6 @@ SETUP = (
 )
 
 PROCEDURE = (
-    "**Test Procedure:**\n\n"
     "* Establish connections to all target devices.\n"
     "* Verify device connectivity to ensure all devices are accessible.\n"
     "* Execute the *show ip ospf neighbor* command on each device.\n"
