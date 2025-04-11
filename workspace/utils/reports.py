@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 import markdown
-from jinja2 import BaseLoader, Environment, StrictUndefined
 from utils import templates
 from utils.constants import (
     AGGREGATED_REPORT_FILENAME,
@@ -76,32 +75,23 @@ def generate_job_report(
 
     passed = status == ResultStatus.PASSED
 
-    # Create Jinja environment for the content templates (not the report template)
-    content_env = Environment(
-        loader=BaseLoader,
-        extensions=["jinja2.ext.do"],
-        trim_blocks=True,
-        lstrip_blocks=True,
-        undefined=StrictUndefined,
-    )
-
-    # Prepare content templates
-    description_template = content_env.from_string(description)
-    setup_template = content_env.from_string(setup)
-    procedure_template = content_env.from_string(procedure)
-    pass_fail_criteria_template = content_env.from_string(pass_fail_criteria)
-
     # Render content with parameters as necessary
     if parameters:
-        rendered_description = description_template.render(parameters=parameters)
-        rendered_setup = setup_template.render(parameters=parameters)
-        rendered_procedure = procedure_template.render(parameters=parameters)
-        rendered_criteria = pass_fail_criteria_template.render(parameters=parameters)
+        rendered_description = templates.render_string_template(
+            description, parameters=parameters
+        )
+        rendered_setup = templates.render_string_template(setup, parameters=parameters)
+        rendered_procedure = templates.render_string_template(
+            procedure, parameters=parameters
+        )
+        rendered_criteria = templates.render_string_template(
+            pass_fail_criteria, parameters=parameters
+        )
     else:
-        rendered_description = description_template.render()
-        rendered_setup = setup_template.render()
-        rendered_procedure = procedure_template.render()
-        rendered_criteria = pass_fail_criteria_template.render()
+        rendered_description = templates.render_string_template(description)
+        rendered_setup = templates.render_string_template(setup)
+        rendered_procedure = templates.render_string_template(procedure)
+        rendered_criteria = templates.render_string_template(pass_fail_criteria)
 
     # Convert rendered markdown to HTML
     rendered_description_html = convert_markdown_to_html(rendered_description)
