@@ -31,4 +31,12 @@ class Result(TypedDict):
     message: str
 
 
+class CommandExecution(TypedDict):
+    """Represents a command execution record."""
+
+    device_name: str
+    command: str
+    output: str
+
+
 ParameterData = dict[str, Any]
