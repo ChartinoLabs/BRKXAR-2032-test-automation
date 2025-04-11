@@ -37,6 +37,7 @@ class CommandExecution(TypedDict):
     device_name: str
     command: str
     output: str
+    data: dict
 
 
 ParameterData = dict[str, Any]

@@ -51,7 +51,9 @@ class TestResultCollector:
             }
         )
 
-    def add_command_execution(self, device_name: str, command: str, output: str):
+    def add_command_execution(
+        self, device_name: str, command: str, output: str, data: dict | None = None
+    ):
         """Add a command execution record to the collection.
 
         Args:
@@ -65,5 +67,6 @@ class TestResultCollector:
                 "device_name": device_name,
                 "command": command,
                 "output": output,
+                "data": data if data is not None else {},
             }
         )
