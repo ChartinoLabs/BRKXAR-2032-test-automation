@@ -413,6 +413,7 @@
         function toggleCollapse(id) {
             const element = document.getElementById(id);
             if (element) {
+                // Toggle collapsed class on the element
                 element.classList.toggle('collapsed');
 
                 // For device containers, toggle the content differently
@@ -422,9 +423,14 @@
                         content.classList.toggle('content-collapsed');
                     }
                 }
-                // For parsed data sections, toggle them directly
+                // For parsed data sections, toggle them directly and update the header chevron
                 else if (id.startsWith('parsed-data-')) {
                     element.classList.toggle('content-collapsed');
+                    // Find and toggle the chevron in the header that triggered this
+                    const header = element.previousElementSibling;
+                    if (header && header.classList.contains('parsed-data-header')) {
+                        header.classList.toggle('collapsed');
+                    }
                 }
             }
         }
