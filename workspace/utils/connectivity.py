@@ -91,7 +91,10 @@ def run_command_on_device(
 
     # Record this command execution
     device.testbed_adapter.result_collector.add_command_execution(
-        device_name=device.name, command=command, output=output
+        device_name=device.name,
+        command=command,
+        output=output,
+        data=data,
     )
 
     return CommandExecutionResult(
