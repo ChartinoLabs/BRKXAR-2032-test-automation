@@ -13,6 +13,9 @@ from typing import Any, Iterator, cast
 from pyats.topology.device import Device as PyatsDevice
 from pyats.topology.testbed import Testbed as PyatsTestbed
 
+from .results import TestResultCollector
+from .types import ParameterData
+
 logger = logging.getLogger(__name__)
 
 
@@ -123,6 +126,7 @@ class TestbedAdapter:
         name (str): The testbed name
         devices (Dict[str, DeviceAdapter]): Dictionary of device adapters keyed by device name
         testbed (PyatsTestbed): The underlying pyATS Testbed object
+        results: TestResultCollector for recording test results
     """
 
     def __init__(self, testbed: PyatsTestbed):
@@ -133,6 +137,8 @@ class TestbedAdapter:
         """
         self.testbed = testbed
         self._device_adapters: dict[str, DeviceAdapter] = {}
+        self.result_collector = TestResultCollector()
+        self.parameters: ParameterData = {}
 
     @property
     def name(self) -> str:
