@@ -165,11 +165,8 @@ def generate_job_report(
     return output_file
 
 
-def aggregate_reports(archive_path: Path | None = None) -> Path:
+def aggregate_reports() -> Path:
     """Aggregate all individual test results into a single HTML report.
-
-    Args:
-        archive_path: Optional path to the pyATS archive zip file to include
 
     Returns:
         Path to the aggregated report
@@ -232,14 +229,6 @@ def aggregate_reports(archive_path: Path | None = None) -> Path:
                     View Detailed Results
                 </a></p>
             </div>
-        """
-
-    if archive_path:
-        html_content += f"""
-        <div class="artifacts">
-            <h2>Test Artifacts</h2>
-            <p><a href="{archive_path.name}">Download Complete Test Archive</a></p>
-        </div>
         """
 
     html_content += """
