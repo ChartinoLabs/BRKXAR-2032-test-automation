@@ -47,8 +47,6 @@ def main(runtime):
     with open(test_plan_path, "r") as f:
         test_plan = yaml.safe_load(f)
 
-    testbed_adapter = TestbedAdapter(runtime.testbed)
-
     base_jobfile_directory = Path(test_plan["jobfile_directory"]).resolve()
 
     for test_case_identifier, test_case_data in test_plan["test_cases"].items():
@@ -80,7 +78,7 @@ def main(runtime):
             test_case_title=test_case_data["title"],
             task_id=task_id,
             mode=args.mode,
-            testbed_adapter=testbed_adapter,
+            testbed_adapter=TestbedAdapter(runtime.testbed),
             test_result_collector=TestResultCollector(),
             parameters_file=fully_qualified_parameters_file,
         )
@@ -89,10 +87,7 @@ def main(runtime):
             testscript=str(jobfile_path),
             runtime=runtime,
             context=context,
-            mode=args.mode,
             task_id=task_id,
-            parameters_file=fully_qualified_parameters_file,
-            testbed_adapter=testbed_adapter,
         )
 
     # Aggregate all results into a single report
