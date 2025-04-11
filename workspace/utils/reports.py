@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import markdown
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from utils.constants import (
     AGGREGATED_REPORT_FILENAME,
@@ -25,6 +26,22 @@ def ensure_results_dirs():
         REPORT_RESULTS_DIR,
     ]:
         directory.mkdir(parents=True, exist_ok=True)
+
+
+def convert_markdown_to_html(markdown_text: str) -> str:
+    """Convert markdown text to HTML.
+
+    Args:
+        markdown_text: Markdown-formatted text to convert
+
+    Returns:
+        HTML-formatted text
+    """
+    html = markdown.markdown(
+        markdown_text,
+        extensions=["extra", "codehilite", "tables", "fenced_code", "toc", "nl2br"],
+    )
+    return html
 
 
 def generate_job_report(
@@ -84,6 +101,12 @@ def generate_job_report(
         rendered_procedure = procedure_template.render()
         rendered_criteria = pass_fail_criteria_template.render()
 
+    # Convert rendered markdown to HTML
+    rendered_description_html = convert_markdown_to_html(rendered_description)
+    rendered_setup_html = convert_markdown_to_html(rendered_setup)
+    rendered_procedure_html = convert_markdown_to_html(rendered_procedure)
+    rendered_criteria_html = convert_markdown_to_html(rendered_criteria)
+
     # Construct HTML variant of results.
     html_results = ""
     for result in results:
@@ -108,6 +131,11 @@ def generate_job_report(
                 font-weight: bold;
             }}
             section {{ margin-bottom: 30px; }}
+            pre {{ background-color: #f5f5f5; padding: 10px; border-radius: 5px; overflow: auto; }}
+            code {{ font-family: Consolas, Monaco, 'Andale Mono', monospace; }}
+            table {{ border-collapse: collapse; width: 100%; margin: 15px 0; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            th {{ background-color: #f2f2f2; }}
         </style>
     </head>
     <body>
@@ -118,22 +146,22 @@ def generate_job_report(
 
         <section>
             <h2>Description</h2>
-            {rendered_description}
+            {rendered_description_html}
         </section>
 
         <section>
             <h2>Setup</h2>
-            {rendered_setup}
+            {rendered_setup_html}
         </section>
 
         <section>
             <h2>Procedure</h2>
-            {rendered_procedure}
+            {rendered_procedure_html}
         </section>
 
         <section>
             <h2>Pass/Fail Criteria</h2>
-            {rendered_criteria}
+            {rendered_criteria_html}
         </section>
 
         <section>
