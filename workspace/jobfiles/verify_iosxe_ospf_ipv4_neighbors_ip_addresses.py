@@ -6,7 +6,7 @@ have the expected IP addresses.
 
 Can run in two modes:
 - learning: Learn current OSPF neighbor IP addresses and save to parameters JSON file
-- testing: Verify OSPF neighbor IP addresses against saved parameters
+- testing: Verify OSPF neighbor IP addresses against parameters file
 """
 
 import logging
@@ -134,7 +134,13 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
         for device in context.testbed_adapter.devices.values():
             execution_result = parsed_data.get(device.name)
             if execution_result is None:
-                msg = f"No OSPF data found for device {device.name}"
+                msg = (
+                    "The test was unable to retrieve OSPF neighbor data from "
+                    f"device {device.name}. This could indicate that OSPF is "
+                    "not configured on the device, the device is unreachable, "
+                    "or there is an issue with the command execution. This "
+                    "behavior is unexpected, so this test case must fail."
+                )
                 context.test_result_collector.add_result(
                     status=ResultStatus.FAILED,
                     message=msg,
@@ -150,7 +156,13 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                 all_devices_data[device.name] = {}
                 context.test_result_collector.add_result(
                     status=ResultStatus.INFO,
-                    message=f"No OSPF interfaces found on {device.name}",
+                    message=(
+                        f"On device {device.name}, the output of the *show ip "
+                        "ospf neighbor* command indicates that there are no "
+                        "OSPF interfaces with active neighbors. This may be "
+                        "normal if OSPF is not configured or if no neighbor "
+                        "relationships have been established on this device."
+                    ),
                 )
                 continue
 
@@ -170,13 +182,26 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                     }
                     context.test_result_collector.add_result(
                         status=ResultStatus.INFO,
-                        message=f"Found neighbor {neighbor_id} with IP {neighbor_data.get('address', '')}",
+                        message=(
+                            f"On device {device.name}, the output of the "
+                            "*show ip ospf neighbor* command indicates that "
+                            f"interface {interface_name} has an OSPF neighbor "
+                            f"with router ID {neighbor_id} at IP address "
+                            f"{neighbor_data.get('address', '')}. This "
+                            "information will be used for verification or "
+                            "learning purposes."
+                        ),
                     )
 
             all_devices_data[device.name] = device_ospf_data
             context.test_result_collector.add_result(
                 status=ResultStatus.PASSED,
-                message=f"Successfully gathered OSPF data from {device.name}",
+                message=(
+                    "The test successfully gathered OSPF neighbor data from "
+                    f"device {device.name} using the *show ip ospf neighbor* "
+                    "command. All data was retrieved and parsed correctly. "
+                    "This behavior is as expected for this test phase."
+                ),
             )
 
         return all_devices_data
@@ -193,7 +218,12 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
             logger.info("Checking current state of device %s", expected_device_name)
             if expected_device_name not in current_state:
                 msg = (
-                    f"Expected device {expected_device_name} not found in current state"
+                    f"The test expected to find device {expected_device_name} "
+                    "in the current network state, but the device was not "
+                    "found or was not accessible. This could indicate that "
+                    "the device is offline, has been renamed, or is not "
+                    "properly configured in the testbed. This behavior is "
+                    "unexpected, so this test case must fail."
                 )
                 context.test_result_collector.add_result(
                     status=ResultStatus.FAILED, message=msg
@@ -206,7 +236,11 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
             )
             context.test_result_collector.add_result(
                 status=ResultStatus.PASSED,
-                message=f"Found expected device {expected_device_name} in current state",
+                message=(
+                    "The test successfully verified that device "
+                    f"{expected_device_name} exists in the current network "
+                    "state and is accessible. This behavior is as expected."
+                ),
             )
 
             # Compare each interface and neighbor
@@ -218,8 +252,13 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                 )
                 if interface_name not in current_state[expected_device_name]:
                     msg = (
-                        f"Interface {interface_name} not found in current state for device "
-                        f"{expected_device_name}"
+                        f"The test expected to find interface {interface_name} "
+                        f"on device {expected_device_name}, but this interface "
+                        "was not present in the current state or does not "
+                        "have any active OSPF neighbors. This could indicate "
+                        "a configuration change, interface shutdown, or OSPF "
+                        "process issue on this interface. This behavior is "
+                        "unexpected, so this test case must fail."
                     )
                     context.test_result_collector.add_result(
                         status=ResultStatus.FAILED, message=msg
@@ -233,7 +272,11 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                 )
                 context.test_result_collector.add_result(
                     status=ResultStatus.PASSED,
-                    message=f"Found expected interface {interface_name}",
+                    message=(
+                        f"On device {expected_device_name}, the test verified that "
+                        f"interface {interface_name} exists and has active OSPF neighbors. "
+                        "This behavior is as expected."
+                    ),
                 )
 
                 expected_neighbors = interface_data.get("neighbors", {})
@@ -251,7 +294,14 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                 )
                 context.test_result_collector.add_result(
                     status=ResultStatus.INFO,
-                    message=f"Found {len(actual_neighbors)} neighbors, expecting {len(expected_neighbors)}",
+                    message=(
+                        f"On device {expected_device_name}, interface "
+                        f"{interface_name} currently has "
+                        f"{len(actual_neighbors)} OSPF neighbors, while the "
+                        "expected number of neighbors is "
+                        f"{len(expected_neighbors)}. This information will be "
+                        "used for detailed comparison."
+                    ),
                 )
 
                 # Compare each expected neighbor
@@ -264,8 +314,13 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                     )
                     if neighbor_id not in actual_neighbors:
                         msg = (
-                            f"Neighbor {neighbor_id} on interface {interface_name} not found in "
-                            f"current state for device {expected_device_name}"
+                            f"On device {expected_device_name}, interface "
+                            f"{interface_name} is missing an expected OSPF "
+                            f"neighbor with router ID {neighbor_id}. This "
+                            "could indicate a connectivity issue, OSPF "
+                            "configuration change, or that the neighbor "
+                            "router is down. This behavior is unexpected, so "
+                            "this test case must fail."
                         )
                         context.test_result_collector.add_result(
                             status=ResultStatus.FAILED, message=msg
@@ -292,10 +347,15 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                     )
                     if current_neighbor_address != expected_neighbor_address:
                         msg = (
-                            f"The current IP address of neighbor {neighbor_id} on interface "
-                            f"{interface_name} is {current_neighbor_address}, which does not match "
-                            "the expected IP address of this neighbor which is "
-                            f"{expected_neighbor_address}"
+                            f"On device {expected_device_name}, interface "
+                            f"{interface_name}, the OSPF neighbor with router "
+                            f"ID {neighbor_id} has an IP address of "
+                            f"{current_neighbor_address}, which does not match "
+                            "the expected IP address of "
+                            f"{expected_neighbor_address}. This could indicate "
+                            "a network topology change, IP addressing change, "
+                            "or potential security issue. This behavior is "
+                            "unexpected, so this test case must fail."
                         )
                         context.test_result_collector.add_result(
                             status=ResultStatus.FAILED, message=msg
@@ -309,7 +369,15 @@ class VerifyOSPFNeighborsIPAddresses(aetest.Testcase):
                         )
                         context.test_result_collector.add_result(
                             status=ResultStatus.PASSED,
-                            message=f"Neighbor {neighbor_id} IP address matches expected: {current_neighbor_address}",
+                            message=(
+                                f"On device {expected_device_name}, "
+                                f"interface {interface_name}, the OSPF "
+                                f"neighbor with router ID {neighbor_id} has "
+                                "the expected IP address of "
+                                f"{current_neighbor_address}. This confirms "
+                                "the network topology and addressing are "
+                                "correct. This behavior is as expected."
+                            ),
                         )
 
     @aetest.test
