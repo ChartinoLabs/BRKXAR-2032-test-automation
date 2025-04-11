@@ -65,7 +65,7 @@ def generate_job_report(
         procedure: Test procedure (from PROCEDURE template)
         pass_fail_criteria: Pass/fail criteria (from PASS_FAIL_CRITERIA template)
         results: Detailed results of the test execution
-        passed: Whether the test passed or failed
+        status: Status of the test execution
         parameters: Test parameters used for template rendering
 
     Returns:
@@ -105,9 +105,7 @@ def generate_job_report(
         formatted_results.append(
             {
                 "message": result["message"],
-                "status": "PASSED"
-                if result["status"] == ResultStatus.PASSED
-                else "FAILED",
+                "status": result["status"],  # Keep the original status
             }
         )
 
@@ -120,7 +118,8 @@ def generate_job_report(
         procedure_html=rendered_procedure_html,
         criteria_html=rendered_criteria_html,
         results=formatted_results,
-        passed=passed,
+        status=status,  # Use the status directly
+        passed=passed,  # Also include the boolean value for backward compatibility
         generation_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
 
@@ -131,7 +130,8 @@ def generate_job_report(
     metadata = {
         "task_id": task_id,
         "title": title,
-        "passed": passed,
+        "passed": passed,  # Keep this for backward compatibility
+        "status": status,  # Include the full status value
         "timestamp": datetime.now().isoformat(),
         "result_file": str(output_file),
     }
@@ -142,11 +142,7 @@ def generate_job_report(
 
 
 def aggregate_reports() -> Path:
-    """Aggregate all individual test results into a single HTML report.
-
-    Returns:
-        Path to the aggregated report
-    """
+    """Aggregate all individual test results into a single HTML report."""
     metadata_files = list(TEST_RESULTS_DIR.glob("*_metadata.json"))
     all_results = []
 
@@ -159,8 +155,10 @@ def aggregate_reports() -> Path:
 
     # Calculate summary statistics
     total_tests = len(all_results)
-    passed_tests = sum(1 for result in all_results if result["passed"])
-    success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+
+    # Count tests with different statuses
+    passed_tests = 0
+    failed_tests = 0
 
     # Format results for the template
     formatted_results = []
@@ -170,15 +168,49 @@ def aggregate_reports() -> Path:
         result_file_dest = REPORT_RESULTS_DIR / result_file.name
         result_file_dest.write_text(result_file.read_text())
 
+        # Get status, with fallback to passed/failed boolean
+        status = result.get("status")
+
+        # For serialized JSON, status may be stored as a string
+        if isinstance(status, str):
+            try:
+                status = ResultStatus(status)
+            except ValueError:
+                # If conversion fails, fall back to pass/fail boolean
+                status = (
+                    ResultStatus.PASSED
+                    if result.get("passed", False)
+                    else ResultStatus.FAILED
+                )
+
+        # If status is missing, fall back to pass/fail boolean
+        if status is None:
+            status = (
+                ResultStatus.PASSED
+                if result.get("passed", False)
+                else ResultStatus.FAILED
+            )
+
+        # Count passed and failed tests based on status
+        if status == ResultStatus.PASSED:
+            passed_tests += 1
+        elif status == ResultStatus.FAILED:
+            failed_tests += 1
+        # Other statuses (INFO, SKIPPED, etc.) don't count as passed or failed
+
         formatted_results.append(
             {
                 "task_id": result["task_id"],
                 "title": result["title"],
-                "passed": result["passed"],
+                "status": status,
                 "timestamp": result["timestamp"],
                 "result_file_path": str(result_file_dest.relative_to(REPORT_DIR)),
             }
         )
+
+    # Calculate success rate only from tests that were either passed or failed
+    total_pass_fail = passed_tests + failed_tests
+    success_rate = (passed_tests / total_pass_fail * 100) if total_pass_fail > 0 else 0
 
     # Render the report using the template utility
     html_content = templates.render_template(
@@ -186,6 +218,7 @@ def aggregate_reports() -> Path:
         generation_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         total_tests=total_tests,
         passed_tests=passed_tests,
+        failed_tests=failed_tests,
         success_rate=success_rate,
         results=formatted_results,
     )
