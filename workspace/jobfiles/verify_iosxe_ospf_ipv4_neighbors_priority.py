@@ -1,13 +1,4 @@
-"""
-Verify OSPF IPv4 Neighbors Priority Test Job
-------------------------------------------
-This job file verifies that all OSPF IPv4 neighbors on the device
-have the expected priority values.
-
-Can run in two modes:
-- learning: Learn current OSPF neighbor priority values and save to parameters JSON file
-- testing: Verify OSPF neighbor priority values against saved parameters
-"""
+"""Verify OSPF IPv4 neighbor priority values on Cisco IOS-XE devices."""
 
 import logging
 

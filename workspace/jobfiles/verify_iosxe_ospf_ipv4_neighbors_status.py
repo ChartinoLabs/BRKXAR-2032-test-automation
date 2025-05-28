@@ -1,13 +1,4 @@
-"""
-Verify OSPF IPv4 Neighbors Status Test Job
------------------------------------------
-This job file verifies that all OSPF IPv4 neighbors on the device
-have a state containing "FULL".
-
-Can run in two modes:
-- learning: Learn current OSPF neighbors and save to parameters JSON file
-- testing: Verify OSPF neighbors against saved parameters
-"""
+"""Verify OSPF IPv4 neighbor status on Cisco IOS-XE devices."""
 
 import logging
 

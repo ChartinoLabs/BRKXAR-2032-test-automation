@@ -1,13 +1,4 @@
-"""
-Verify OSPF IPv4 Neighbors IP Addresses Test Job
------------------------------------------------
-This job file verifies that all OSPF IPv4 neighbors on the device
-have the expected IP addresses.
-
-Can run in two modes:
-- learning: Learn current OSPF neighbor IP addresses and save to parameters JSON file
-- testing: Verify OSPF neighbor IP addresses against parameters file
-"""
+"""Verify OSPF IPv4 neighbor IP addresses on Cisco IOS-XE Devices"""
 
 import logging
 
