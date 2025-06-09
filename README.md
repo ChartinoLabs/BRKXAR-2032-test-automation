@@ -24,11 +24,19 @@ There are two execution modes for the test automation in this project: a **learn
 
 #### Learning Mode
 
+In learning mode, the test automation dynamically discovers and stores the golden parameters for your testbed. These parameters are saved for use in future test runs.
+
+To run the test automation in learning mode, execute the following command:
+
 ```bash
 uv run pyats run job workspace/runner.py --testbed-file testbed.yaml --mode learning
 ```
 
 #### Testing Mode
+
+In testing mode, the test automation compares the current state of your devices against the previously learned golden parameters. Human-friendly results are generated and aggregated for review.
+
+To run the test automation in testing mode, execute the following command:
 
 ```bash
 uv run pyats run job workspace/runner.py --testbed-file testbed.yaml --mode testing
