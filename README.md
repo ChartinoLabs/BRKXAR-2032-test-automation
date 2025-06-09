@@ -16,7 +16,7 @@ uv sync
 
 The `testbed.yaml` file at the root of this project currently contains access details for a testbed internal to Cisco. This testbed is not accessible to the public through the Internet; however, you can modify the access details in this file to point to your own testbed.
 
-The testbed used to develop the test automation in this project consists of four Catalyst 8000v routers running in Cisco Modeling Labs (CML). We recommend getting started with a similar testbed setup of at least four IOS-XE routers configured with OSPF between them.
+The testbed used to develop the test automation in this project consists of four Catalyst 8000v routers running in Cisco Modeling Labs (CML). We recommend getting started with a similar testbed setup of at least two IOS-XE routers configured with OSPF between them.
 
 ### Command Line Usage
 
